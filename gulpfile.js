@@ -40,7 +40,7 @@ gulp.task('default', function() {
         .pipe(frontMatter())
         .pipe(tap(markdownToHtml))
         .pipe(wrap(function(data) {
-            gutil.log(data.file);
+            // gutil.log(data.file);
             return fs.readFileSync('./layouts/' + data.file.frontMatter.layout).toString()
         }, null, {engine: 'nunjucks'}))
         .pipe(tap(handleDest));

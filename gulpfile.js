@@ -66,4 +66,9 @@ gulp.task('sass', function() {
     gulp.src('./styles/main.scss')
         .pipe(sass().on('error', sass.logError))
         .pipe(gulp.dest('./dist/css'));
+});
+
+gulp.task('scripts', function() {
+    gulp.src('./scripts/*.js')
+        .pipe(gulp.dest('./dist/js'));
 })

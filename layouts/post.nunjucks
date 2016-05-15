@@ -1,0 +1,13 @@
+{% extends "./layouts/header.nunjucks" %}
+
+{% block content %}
+
+<div>
+    <h1>{{ file.frontMatter.title }}</h1>
+
+    <div>
+        {{ file.contents }}
+    </div>
+</div>
+
+{% endblock %}

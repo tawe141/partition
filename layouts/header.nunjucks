@@ -1,0 +1,46 @@
+<header class="site-header">
+    <div class="jumbotron">
+        <div class="jumbotron-content">
+            {% if file.frontMatter.title %}
+            <h1>{{ file.frontMatter.title }}</h1>
+            {% else %}
+            <h1>Code <span style="text-decoration: underline;">Expressive</span></h1>
+            {% endif %}
+            {% if file.frontMatter.description %}
+            <p>{{ file.frontMatter.description }}</p>
+            {% else %}
+            <p>
+                Notes of an amateur web developer
+            </p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="wrapper">
+        <nav class="navbar navbar-light navbar-fixed-top bg-faded" id="bs-navbar">
+            <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#navbar-links" id="nav-button">
+                &#9776;
+            </button>
+            <div class="wrapper">
+                <div class="collapse navbar-toggleable-xs" id="navbar-links">
+                    <a class="site-title" href="/" style="{% if page.url != '/' %}{{ 'opacity: 1;' }}{% endif %}">Code <span style="text-decoration: underline;">Expressive</span></a>
+                    <ul class="nav navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/series">Series</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">About</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+</header>
+
+{% block content %}
+
+{% endblock %}

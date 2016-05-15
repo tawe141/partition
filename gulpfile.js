@@ -9,8 +9,11 @@ var alerts = require('markdown-it-alerts');
 var path = require('path');
 var fs = require('fs');
 var mkdirp = require('mkdirp');
+var sass = require('gulp-sass');
 
 var md = new MarkdownIt();
+
+// TODO: use gulp pump if you get useless errors
 
 md.use(alerts);
 // md.renderer.rules.extension = function()
@@ -45,3 +48,22 @@ gulp.task('default', function() {
         }, null, {engine: 'nunjucks'}))
         .pipe(tap(handleDest));
 });
+
+gulp.task('copy', function() {
+    gulp.src('./node_modules/bootstrap/dist/js/bootstrap.min.js')
+        .pipe(gulp.dest('./dist/js'));
+    gulp.src('./node_modules/tether/dist/js/tether.min.js')
+        .pipe(gulp.dest('./dist/js'));
+    gulp.src('./node_modules/bootstrap/dist/css/bootstrap.min.css')
+        .pipe(gulp.dest('./dist/css'));
+    gulp.src('./node_modules/bootstrap/dist/css/bootstrap.min.css.map')
+        .pipe(gulp.dest('./dist/css'));
+    gulp.src('./node_modules/tether/dist/css/tether.min.css')
+        .pipe(gulp.dest('./dist/css'));
+});
+
+gulp.task('sass', function() {
+    gulp.src('./styles/main.scss')
+        .pipe(sass().on('error', sass.logError))
+        .pipe(gulp.dest('./dist/css'));
+})

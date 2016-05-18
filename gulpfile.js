@@ -51,7 +51,7 @@ function handleDestForStatic(file) {
 }
 
 gulp.task('default', function() {
-    return gulp.src('./src/md/*')
+    return gulp.src('./src/md/*.md')
         .pipe(frontMatter())
         .pipe(tap(markdownToHtml))
         .pipe(wrap(function(data) {
@@ -61,8 +61,7 @@ gulp.task('default', function() {
 });
 
 gulp.task('static', function() {
-    return gulp.src('./src/static/*')
-        .on('error', gutil.log)
+    return gulp.src('./src/static/*.html')
         .pipe(nunjucksRender({
             path: './layouts'
         }))
@@ -94,3 +93,12 @@ gulp.task('scripts', function() {
     gulp.src('./scripts/*.js')
         .pipe(gulp.dest('./dist/js'));
 });
+
+
+gulp. task('watch', function() {
+    gulp.watch('./layouts/*', ['default', 'static']);
+    gulp.watch('./scripts/*', ['scripts']);
+    gulp.watch('./src/md/*', ['default']);
+    gulp.watch('./src/static/*', ['static']);
+    gulp.watch('./styles/*.scss', ['sass']);
+})

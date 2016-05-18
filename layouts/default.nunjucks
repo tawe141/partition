@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+
+    {% include "./head.nunjucks" %}
+
+    <body>
+
+        {% include "./header.nunjucks" %}
+
+        <div class="page-content">
+            <div class="wrapper">
+
+                {% block content %}
+
+                {% endblock %}
+
+            </div>
+        </div>
+
+    </body>
+
+</html>

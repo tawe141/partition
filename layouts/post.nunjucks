@@ -1,4 +1,4 @@
-{% extends "./layouts/header.nunjucks" %}
+{% extends "./layouts/default.nunjucks" %}
 
 {% block content %}
 

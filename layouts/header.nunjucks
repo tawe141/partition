@@ -1,7 +1,3 @@
-{% extends "./head.nunjucks" %}
-
-{% block header %}
-
 <header class="site-header">
     <div class="jumbotron">
         <div class="jumbotron-content">
@@ -44,9 +40,3 @@
     </div>
 
 </header>
-
-{% block content %}
-
-{% endblock %}
-
-{% endblock %}

@@ -10,6 +10,7 @@ var path = require('path');
 var fs = require('fs');
 var mkdirp = require('mkdirp');
 var sass = require('gulp-sass');
+var nunjucksRender = require('gulp-nunjucks-render');
 
 var md = new MarkdownIt();
 
@@ -25,7 +26,7 @@ function markdownToHtml(file) {
     return;
 }
 
-function handleDest(file) {
+function handleDestForPost(file) {
     pathName = path.join(__dirname, 'dist', file.frontMatter.year.toString(), file.frontMatter.month.toString(), file.frontMatter.day.toString());
     // console.log(file);
     if(!fs.existsSync(pathName)) {
@@ -38,16 +39,35 @@ function handleDest(file) {
     return;
 }
 
+function handleDestForStatic(file) {
+    pathname = path.join(__dirname, 'dist');
+    if(!fs.existsSync(pathName)) {
+        mkdirp(pathName);
+    }
+    fs.writeFile(path.join(pathName, file.name), file.contents, function(err, data) {
+        if (err) throw err;
+    })
+    return;
+}
+
 gulp.task('default', function() {
-    gulp.src('./src/md/*')
+    return gulp.src('./src/md/*')
         .pipe(frontMatter())
         .pipe(tap(markdownToHtml))
         .pipe(wrap(function(data) {
-            // gutil.log(data.file);
             return fs.readFileSync('./layouts/' + data.file.frontMatter.layout).toString()
         }, null, {engine: 'nunjucks'}))
-        .pipe(tap(handleDest));
+        .pipe(tap(handleDestForPost));
 });
+
+gulp.task('static', function() {
+    return gulp.src('./src/static/*')
+        .on('error', gutil.log)
+        .pipe(nunjucksRender({
+            path: './layouts'
+        }))
+        .pipe(gulp.dest('./dist'));
+})
 
 gulp.task('copy', function() {
     gulp.src('./node_modules/bootstrap/dist/js/bootstrap.min.js')
@@ -60,6 +80,8 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('./dist/css'));
     gulp.src('./node_modules/tether/dist/css/tether.min.css')
         .pipe(gulp.dest('./dist/css'));
+    gulp.src('./img/*')
+        .pipe(gulp.dest('./dist/img'));
 });
 
 gulp.task('sass', function() {
@@ -71,4 +93,4 @@ gulp.task('sass', function() {
 gulp.task('scripts', function() {
     gulp.src('./scripts/*.js')
         .pipe(gulp.dest('./dist/js'));
-})
+});

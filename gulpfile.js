@@ -1,3 +1,6 @@
+// import environment vars
+require('dotenv').config();
+
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var tap = require('gulp-tap');
@@ -11,13 +14,28 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var sass = require('gulp-sass');
 var nunjucksRender = require('gulp-nunjucks-render');
+var mongoose = require('mongoose');
 
 var md = new MarkdownIt();
 
 // TODO: use gulp pump if you get useless errors
 
 md.use(alerts);
-// md.renderer.rules.extension = function()
+
+// open a mongo connection
+mongoose.connect(process.env.DB_URI);
+
+var db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'connection error: '));
+db.once('open', function() {
+    console.log('MongoDB connection successful');
+})
+
+// import schema
+var model = require('./models/mongoose_schema')(mongoose);
+
+// ---
 
 function markdownToHtml(file) {
     var result = md.render(file.contents.toString());
@@ -50,14 +68,43 @@ function handleDestForStatic(file) {
     return;
 }
 
+function storeInDB(file) {
+    // gutil.log(file.frontMatter);
+
+    var Post = model.Post;
+
+    var new_post = new Post(
+        {
+            author: file.frontMatter.author,
+            title: file.frontMatter.title,
+            date: Date.parse(file.frontMatter.date),
+            markdown: file.contents,
+            tags: file.frontMatter.tags,
+            series: file.frontMatter.series
+        }
+    )
+
+    if(Post.findOne({ 'title' : new_post.title }, function(err, result) {
+        if(err) {
+            new_post.save(function(err) {
+                if(err) return console.error(err);
+            })
+            gutil.log('Saved post named "' + new_post.title + '"');
+        }
+        else {
+            gutil.log('Post named "' + new_post.title + '" already exists');
+        }
+    }))
+
+    return;
+}
+
 gulp.task('default', function() {
+    // Post.collection.remove();
     return gulp.src('./src/md/*.md')
         .pipe(frontMatter())
         .pipe(tap(markdownToHtml))
-        .pipe(wrap(function(data) {
-            return fs.readFileSync('./layouts/' + data.file.frontMatter.layout).toString()
-        }, null, {engine: 'nunjucks'}))
-        .pipe(tap(handleDestForPost));
+        .pipe(tap(storeInDB))
 });
 
 gulp.task('static', function() {

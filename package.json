@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "bootstrap": "^4.0.0-alpha.2",
+    "dotenv": "^2.0.0",
     "express": "^4.13.4",
     "mongoose": "^4.4.17",
     "nunjucks": "^2.4.2",

@@ -1,4 +1,0 @@
-
-<? {% extend "base.html" %} ?>
-
-# Title

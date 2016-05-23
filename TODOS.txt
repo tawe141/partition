@@ -1,0 +1,3 @@
+- Gulp watch function for all mds
+- delete functionality in mongo
+- mangle date string in frontMatter

@@ -46,6 +46,8 @@ function markdownToHtml(file) {
 }
 
 function handleDestForPost(file) {
+    var date = Date.parse(file.frontMatter.date);
+    gutil.log(date);
     pathName = path.join(__dirname, 'dist', file.frontMatter.year.toString(), file.frontMatter.month.toString(), file.frontMatter.day.toString());
     // console.log(file);
     if(!fs.existsSync(pathName)) {
@@ -110,7 +112,7 @@ function storeInDB(file) {
                 gutil.log('Updated post named "' + new_post.title + '"');    
             }
             else {
-                 gutil.log('Post named "' + new_post.title + '" already exists');
+                gutil.log('Post named "' + new_post.title + '" already exists');
             }
         }
     }))
@@ -124,6 +126,10 @@ gulp.task('default', function() {
         .pipe(frontMatter())
         .pipe(tap(markdownToHtml))
         .pipe(tap(storeInDB))
+        .pipe(wrap(function(data) {
+            return fs.readFileSync('./layouts/' + data.file.frontMatter.layout).toString()
+        }, null, {engine: 'nunjucks'}))
+        .pipe(tap(handleDestForPost));
 });
 
 gulp.task('static', function() {

@@ -105,9 +105,13 @@ function storeInDB(file) {
                         tags: file.frontMatter.tags,
                         series: file.frontMatter.series,
                         hash: hash(file.contents.toString())
-                    })
+                    }
+                );
+                gutil.log('Updated post named "' + new_post.title + '"');    
             }
-            gutil.log('Post named "' + new_post.title + '" already exists');
+            else {
+                 gutil.log('Post named "' + new_post.title + '" already exists');
+            }
         }
     }))
 

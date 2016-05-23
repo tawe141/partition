@@ -6,7 +6,11 @@ module.exports = function(mongoose) {
             date: Date,
             markdown: Buffer,
             tags: [String],
-            series: { data: String, default: '' }
+            series: { data: String, default: '' },
+            hash: Number
+        },
+        {
+            timestamps: true
         }
     );
     var model = {

@@ -15,6 +15,7 @@ var mkdirp = require('mkdirp');
 var sass = require('gulp-sass');
 var nunjucksRender = require('gulp-nunjucks-render');
 var mongoose = require('mongoose');
+var hash = require('string-hash');
 
 var md = new MarkdownIt();
 
@@ -80,18 +81,32 @@ function storeInDB(file) {
             date: Date.parse(file.frontMatter.date),
             markdown: file.contents,
             tags: file.frontMatter.tags,
-            series: file.frontMatter.series
+            series: file.frontMatter.series,
+            hash: hash(file.contents.toString())
         }
     )
 
     if(Post.findOne({ 'title' : new_post.title }, function(err, result) {
-        if(err) {
+        if(result === null) {
             new_post.save(function(err) {
                 if(err) return console.error(err);
             })
             gutil.log('Saved post named "' + new_post.title + '"');
         }
         else {
+            // gutil.log(result.hash);
+            if(result.hash !== new_post.hash) {
+                result.update(
+                    {
+                        author: file.frontMatter.author,
+                        title: file.frontMatter.title,
+                        date: Date.parse(file.frontMatter.date),
+                        markdown: file.contents,
+                        tags: file.frontMatter.tags,
+                        series: file.frontMatter.series,
+                        hash: hash(file.contents.toString())
+                    })
+            }
             gutil.log('Post named "' + new_post.title + '" already exists');
         }
     }))

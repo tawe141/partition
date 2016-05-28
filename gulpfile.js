@@ -47,15 +47,52 @@ function markdownToHtml(file) {
     return;
 }
 
+// iteratively make directory
+function iter_mkdir(pathName) {
+    if(pathName) {
+        return true;
+    }
+    else {
+        if (typeof pathName == 'string') {
+            var pathName = pathName.split("/");
+        }
+        
+        var current = "";
+        
+        for (var i = 0; i < pathName.length(); i++) {
+            var tmp = pathName[i];
+            if(!current) {
+                current = path.join(__dirname, tmp);
+            }
+            else {
+                current = path.join(current, tmp);
+            }
+            fs.mkdirSync(current, function(err) {
+                if (err) throw err;
+            })
+        }
+    }
+}
+
 function handleDestForPost(file) {
     var date = new Date(Date.parse(file.frontMatter.date));
-    var pathName = path.join(__dirname, 'dist', date.getFullYear().toString(), date.getMonth().toString(), date.getDate().toString());
+    var localpath = path.join('/dist', date.getFullYear().toString(), date.getMonth().toString(), date.getDate().toString());
+    var pathName = path.join(__dirname, localpath);
     
     // if(!fs.existsSync(pathName)) {
     //     mkdirp(pathName);
     // }
     
-    mkdirp(pathName);
+    gutil.log('pathName: ' + pathName);
+    gutil.log('localpath: ' + localpath);
+    
+    mkdirp(localpath, function(err, made) {
+        if (err) throw err;
+        else gutil.log(made);
+    });
+    
+    // iter_mkdir(localpath);
+    
     var filename = file.frontMatter.title.toLowerCase().replace(/ /g, "_") + ".html";
     fs.writeFile(path.join(pathName, filename), file.contents, function(err, data) {
         if (err) throw err;
@@ -109,6 +146,7 @@ function storeInDB(file) {
     }
 
     if(Post.findOne({ 'title' : new_post.title }, function(err, result) {
+        if (err) throw err;
         if(result === null) {
             new_post.save(function(err) {
                 if(err) return console.error(err);

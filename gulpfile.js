@@ -47,33 +47,6 @@ function markdownToHtml(file) {
     return;
 }
 
-// iteratively make directory
-function iter_mkdir(pathName) {
-    if(pathName) {
-        return true;
-    }
-    else {
-        if (typeof pathName == 'string') {
-            var pathName = pathName.split("/");
-        }
-        
-        var current = "";
-        
-        for (var i = 0; i < pathName.length(); i++) {
-            var tmp = pathName[i];
-            if(!current) {
-                current = path.join(__dirname, tmp);
-            }
-            else {
-                current = path.join(current, tmp);
-            }
-            fs.mkdirSync(current, function(err) {
-                if (err) throw err;
-            })
-        }
-    }
-}
-
 function handleDestForPost(file) {
     var date = new Date(Date.parse(file.frontMatter.date));
     var localpath = path.join('/dist', date.getFullYear().toString(), date.getMonth().toString(), date.getDate().toString());
@@ -148,7 +121,7 @@ function storeInDB(file) {
             new_post.save(function(err) {
                 if(err) return console.error(err);
             })
-            gutil.log('Saved post named "' + new_post.title + '"');
+            gutil.log('Saved post named "' + new_post.title + '" in database');
         }
         else {
             // gutil.log(result.hash);
@@ -164,10 +137,10 @@ function storeInDB(file) {
                         hash: hash(file.contents.toString())
                     }
                 );
-                gutil.log('Updated post named "' + new_post.title + '"');
+                gutil.log('Updated post named "' + new_post.title + '" in database');
             }
             else {
-                gutil.log('Post named "' + new_post.title + '" already exists');
+                gutil.log('Post named "' + new_post.title + '" already exists in database');
             }
         }
     }))
@@ -175,7 +148,7 @@ function storeInDB(file) {
     return;
 }
 
-gulp.task('default', function() {
+gulp.task('handle_mds', function() {
     // Post.collection.remove();
     return gulp.src('./src/md/*.md')
         .pipe(frontMatter())
@@ -222,10 +195,14 @@ gulp.task('scripts', function() {
 });
 
 
-gulp. task('watch', function() {
+gulp.task('watch', function() {
     gulp.watch('./layouts/*', ['default', 'static']);
     gulp.watch('./scripts/*', ['scripts']);
     gulp.watch('./src/md/*', ['default']);
     gulp.watch('./src/static/*', ['static']);
     gulp.watch('./styles/*.scss', ['sass']);
+})
+
+gulp.task('default', ['handle_mds', 'static', 'copy', 'sass', 'scripts'], function() {
+    process.exit(0);
 })

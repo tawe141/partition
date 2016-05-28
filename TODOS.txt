@@ -1,3 +1,4 @@
 - Gulp watch function for all mds
 - delete functionality in mongo
+    - semi-fixed...added a hidden tag. do not render if hidden === true. 
 - mangle date string in frontMatter

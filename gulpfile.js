@@ -10,7 +10,7 @@ var frontMatter = require('gulp-front-matter');
 var MarkdownIt = require('markdown-it');
 var alerts = require('markdown-it-alerts');
 var path = require('path');
-var fs = require('fs');
+var fs = require('graceful-fs');
 var mkdirp = require('mkdirp');
 var sass = require('gulp-sass');
 var nunjucksRender = require('gulp-nunjucks-render');
@@ -18,6 +18,8 @@ var mongoose = require('mongoose');
 var hash = require('string-hash');
 
 var md = new MarkdownIt();
+
+gutil.log(__dirname);
 
 // TODO: use gulp pump if you get useless errors
 
@@ -30,7 +32,7 @@ var db = mongoose.connection;
 
 db.on('error', console.error.bind(console, 'connection error: '));
 db.once('open', function() {
-    console.log('MongoDB connection successful');
+    gutil.log('MongoDB connection successful');
 })
 
 // import schema
@@ -47,14 +49,14 @@ function markdownToHtml(file) {
 
 function handleDestForPost(file) {
     var date = new Date(Date.parse(file.frontMatter.date));
-    gutil.log(date);
-    pathName = path.join(__dirname, 'dist', date.getFullYear().toString(), date.getMonth().toString(), date.getDate().toString());
-    // pathName = path.join(__dirname, 'dist', file.frontMatter.year.toString(), file.frontMatter.month.toString(), file.frontMatter.day.toString());
-    // console.log(file);
-    if(!fs.existsSync(pathName)) {
-        mkdirp(pathName);
-    }
-    filename = file.frontMatter.title.toLowerCase().replace(/ /g, "_") + ".html";
+    var pathName = path.join(__dirname, 'dist', date.getFullYear().toString(), date.getMonth().toString(), date.getDate().toString());
+    
+    // if(!fs.existsSync(pathName)) {
+    //     mkdirp(pathName);
+    // }
+    
+    mkdirp(pathName);
+    var filename = file.frontMatter.title.toLowerCase().replace(/ /g, "_") + ".html";
     fs.writeFile(path.join(pathName, filename), file.contents, function(err, data) {
         if (err) throw err;
     })
@@ -62,7 +64,7 @@ function handleDestForPost(file) {
 }
 
 function handleDestForStatic(file) {
-    pathname = path.join(__dirname, 'dist');
+    var pathName = path.join(__dirname, 'dist');
     if(!fs.existsSync(pathName)) {
         mkdirp(pathName);
     }

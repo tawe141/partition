@@ -7,7 +7,8 @@ module.exports = function(mongoose) {
             markdown: Buffer,
             tags: [String],
             series: { data: String, default: '' },
-            hash: Number
+            hash: Number,
+            hidden: { type: Boolean, default: false }
         },
         {
             timestamps: true

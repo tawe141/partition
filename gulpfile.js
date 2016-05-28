@@ -77,17 +77,34 @@ function storeInDB(file) {
 
     var Post = model.Post;
 
-    var new_post = new Post(
-        {
-            author: file.frontMatter.author,
-            title: file.frontMatter.title,
-            date: Date.parse(file.frontMatter.date),
-            markdown: file.contents,
-            tags: file.frontMatter.tags,
-            series: file.frontMatter.series,
-            hash: hash(file.contents.toString())
-        }
-    )
+    if(file.frontMatter.hidden) {
+        var new_post = new Post(
+            {
+                author: file.frontMatter.author,
+                title: file.frontMatter.title,
+                date: Date.parse(file.frontMatter.date),
+                markdown: file.contents,
+                tags: file.frontMatter.tags,
+                series: file.frontMatter.series,
+                hash: hash(file.contents.toString()),
+                hidden: true
+            }
+        )
+    }
+
+    else {
+        var new_post = new Post(
+            {
+                author: file.frontMatter.author,
+                title: file.frontMatter.title,
+                date: Date.parse(file.frontMatter.date),
+                markdown: file.contents,
+                tags: file.frontMatter.tags,
+                series: file.frontMatter.series,
+                hash: hash(file.contents.toString())
+            }
+        )
+    }
 
     if(Post.findOne({ 'title' : new_post.title }, function(err, result) {
         if(result === null) {
@@ -110,7 +127,7 @@ function storeInDB(file) {
                         hash: hash(file.contents.toString())
                     }
                 );
-                gutil.log('Updated post named "' + new_post.title + '"');    
+                gutil.log('Updated post named "' + new_post.title + '"');
             }
             else {
                 gutil.log('Post named "' + new_post.title + '" already exists');

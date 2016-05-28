@@ -86,10 +86,7 @@ function handleDestForPost(file) {
     gutil.log('pathName: ' + pathName);
     gutil.log('localpath: ' + localpath);
     
-    mkdirp(localpath, function(err, made) {
-        if (err) throw err;
-        else gutil.log(made);
-    });
+    mkdirp.sync(pathName);
     
     // iter_mkdir(localpath);
     

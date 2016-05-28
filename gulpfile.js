@@ -46,9 +46,10 @@ function markdownToHtml(file) {
 }
 
 function handleDestForPost(file) {
-    var date = Date.parse(file.frontMatter.date);
+    var date = new Date(Date.parse(file.frontMatter.date));
     gutil.log(date);
-    pathName = path.join(__dirname, 'dist', file.frontMatter.year.toString(), file.frontMatter.month.toString(), file.frontMatter.day.toString());
+    pathName = path.join(__dirname, 'dist', date.getFullYear().toString(), date.getMonth().toString(), date.getDate().toString());
+    // pathName = path.join(__dirname, 'dist', file.frontMatter.year.toString(), file.frontMatter.month.toString(), file.frontMatter.day.toString());
     // console.log(file);
     if(!fs.existsSync(pathName)) {
         mkdirp(pathName);

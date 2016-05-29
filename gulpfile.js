@@ -40,7 +40,21 @@ var model = require('./models/mongoose_schema')(mongoose);
 
 // ---
 
+function processCategories(file) {
+    var name = file.relative.split('/');
+    if(name[0].includes('.')) {
+        return;
+    }
+    else {
+        file.name = name.splice(-1, 1);
+        file.category = name.pop();
+        file.subcategories = name;
+    }
+    return;
+}
+
 function markdownToHtml(file) {
+    gutil.log(file.relative);
     var result = md.render(file.contents.toString());
     file.contents = new Buffer(result);
     file.path = gutil.replaceExtension(file.path, '.html');
@@ -52,16 +66,7 @@ function handleDestForPost(file) {
     var localpath = path.join('/dist', date.getFullYear().toString(), date.getMonth().toString(), date.getDate().toString());
     var pathName = path.join(__dirname, localpath);
     
-    // if(!fs.existsSync(pathName)) {
-    //     mkdirp(pathName);
-    // }
-    
-    gutil.log('pathName: ' + pathName);
-    gutil.log('localpath: ' + localpath);
-    
     mkdirp.sync(pathName);
-    
-    // iter_mkdir(localpath);
     
     var filename = file.frontMatter.title.toLowerCase().replace(/ /g, "_") + ".html";
     fs.writeFile(path.join(pathName, filename), file.contents, function(err, data) {
@@ -82,7 +87,7 @@ function handleDestForStatic(file) {
 }
 
 function storeInDB(file) {
-    // gutil.log(file.frontMatter);
+    gutil.log(file);
 
     var Post = model.Post;
 
@@ -114,8 +119,10 @@ function storeInDB(file) {
             }
         )
     }
+    
+    gutil.log(new_post);
 
-    if(Post.findOne({ 'title' : new_post.title }, function(err, result) {
+    Post.findOne({ 'title' : new_post.title }, function(err, result) {
         if (err) throw err;
         if(result === null) {
             new_post.save(function(err) {
@@ -143,14 +150,15 @@ function storeInDB(file) {
                 gutil.log('Post named "' + new_post.title + '" already exists in database');
             }
         }
-    }))
+    })
 
     return;
 }
 
 gulp.task('handle_mds', function() {
     // Post.collection.remove();
-    return gulp.src('./src/md/*.md')
+    return gulp.src('./src/md/**/*.md')
+        .pipe(tap(processCategories))
         .pipe(frontMatter())
         .pipe(tap(markdownToHtml))
         .pipe(tap(storeInDB))

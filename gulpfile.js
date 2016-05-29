@@ -19,8 +19,6 @@ var hash = require('string-hash');
 
 var md = new MarkdownIt();
 
-gutil.log(__dirname);
-
 // TODO: use gulp pump if you get useless errors
 
 md.use(alerts);
@@ -129,9 +127,22 @@ function storeInDB(file) {
             }
         )
     }
-
+    
+    var query = Post.where({'title' : new_post.title});
+    
+    gutil.log(query);
+    
+    gutil.log(query.findOne(function(err, result) {
+        if (err) throw err;
+        
+        gutil.log(result);
+    }));
+    
     Post.findOne({ 'title' : new_post.title }, function(err, result) {
         if (err) throw err;
+        
+        console.log(result);
+        
         if(result === null) {
             new_post.save(function(err) {
                 if(err) return console.error(err);
@@ -219,5 +230,6 @@ gulp.task('watch', function() {
 })
 
 gulp.task('default', ['handle_mds', 'static', 'copy', 'sass', 'scripts'], function() {
+    mongoose.connection.close();
     process.exit(0);
 })

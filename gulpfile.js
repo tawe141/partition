@@ -40,21 +40,21 @@ var model = require('./models/mongoose_schema')(mongoose);
 
 // ---
 
-function processCategories(file) {
-    var name = file.relative.split('/');
-    if(name[0].includes('.')) {
-        return;
-    }
-    else {
-        file.name = name.splice(-1, 1);
-        file.category = name.pop();
-        file.subcategories = name;
-    }
-    return;
-}
+// function processCategories(file) {
+//     var name = file.relative.split('/');
+//     if(name[0].includes('.')) {
+//         return null;
+//     }
+//     else {
+//         var result = new Object();
+//         result.name = name.splice(-1, 1);
+//         result.category = name.pop();
+//         result.subcategories = name;
+//     }
+//     return;
+// }
 
 function markdownToHtml(file) {
-    gutil.log(file.relative);
     var result = md.render(file.contents.toString());
     file.contents = new Buffer(result);
     file.path = gutil.replaceExtension(file.path, '.html');
@@ -62,12 +62,23 @@ function markdownToHtml(file) {
 }
 
 function handleDestForPost(file) {
+    var name = file.relative.split('\\');
+
+    name.splice(-1, 1);
+
+    var catpath = '';
+    if(name) {
+        name.forEach(function(val) {
+            catpath = path.join(catpath, val);
+        });
+    }
+
     var date = new Date(Date.parse(file.frontMatter.date));
-    var localpath = path.join('/dist', date.getFullYear().toString(), date.getMonth().toString(), date.getDate().toString());
+    var localpath = path.join('/dist', catpath, date.getFullYear().toString(), date.getMonth().toString(), date.getDate().toString());
     var pathName = path.join(__dirname, localpath);
-    
+
     mkdirp.sync(pathName);
-    
+
     var filename = file.frontMatter.title.toLowerCase().replace(/ /g, "_") + ".html";
     fs.writeFile(path.join(pathName, filename), file.contents, function(err, data) {
         if (err) throw err;
@@ -87,7 +98,6 @@ function handleDestForStatic(file) {
 }
 
 function storeInDB(file) {
-    gutil.log(file);
 
     var Post = model.Post;
 
@@ -119,8 +129,6 @@ function storeInDB(file) {
             }
         )
     }
-    
-    gutil.log(new_post);
 
     Post.findOne({ 'title' : new_post.title }, function(err, result) {
         if (err) throw err;
@@ -158,7 +166,6 @@ function storeInDB(file) {
 gulp.task('handle_mds', function() {
     // Post.collection.remove();
     return gulp.src('./src/md/**/*.md')
-        .pipe(tap(processCategories))
         .pipe(frontMatter())
         .pipe(tap(markdownToHtml))
         .pipe(tap(storeInDB))

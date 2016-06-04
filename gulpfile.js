@@ -127,22 +127,25 @@ function storeInDB(file) {
             }
         )
     }
-    
-    var query = Post.where({'title' : new_post.title});
-    
-    gutil.log(query);
-    
-    gutil.log(query.findOne(function(err, result) {
-        if (err) throw err;
-        
-        gutil.log(result);
-    }));
-    
+
+    // var query = Post.where({'title' : new_post.title});
+    //
+    // // gutil.log(query);
+    //
+    // gutil.log(query.findOne(function(err, result) {
+    //     if (err) throw err;
+    //
+    //     gutil.log(result);
+    // }));
+    gutil.log(Post.count({'title' : new_post.title}));
+
     Post.findOne({ 'title' : new_post.title }, function(err, result) {
-        if (err) throw err;
-        
-        console.log(result);
-        
+        if (err) {
+            throw err;
+        }
+
+        gutil.log(result);
+
         if(result === null) {
             new_post.save(function(err) {
                 if(err) return console.error(err);

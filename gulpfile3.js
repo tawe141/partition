@@ -16,6 +16,9 @@ var sass = require('gulp-sass');
 var nunjucksRender = require('gulp-nunjucks-render');
 var mongoose = require('mongoose');
 var hash = require('string-hash');
+var runseq = require('run-sequence');
+var model = require('./models/mongoose_schema')(mongoose);
+
 
 var md = new MarkdownIt();
 
@@ -23,34 +26,22 @@ var md = new MarkdownIt();
 
 md.use(alerts);
 
-// open a mongo connection
-mongoose.connect(process.env.DB_URI);
 
-var db = mongoose.connection;
+gulp.task('dbconnect', function() {
+    mongoose.connect(process.env.DB_URI);
 
-db.on('error', console.error.bind(console, 'connection error: '));
-db.once('open', function() {
-    gutil.log('MongoDB connection successful');
-})
+    var db = mongoose.connection;
+    
+    db.on('error', console.error.bind(console, 'connection error: '));
+    db.once('open', function() {
+        gutil.log('MongoDB connection successful');
+        return;
+    });
+});
 
-// import schema
-var model = require('./models/mongoose_schema')(mongoose);
+
 
 // ---
-
-// function processCategories(file) {
-//     var name = file.relative.split('/');
-//     if(name[0].includes('.')) {
-//         return null;
-//     }
-//     else {
-//         var result = new Object();
-//         result.name = name.splice(-1, 1);
-//         result.category = name.pop();
-//         result.subcategories = name;
-//     }
-//     return;
-// }
 
 function markdownToHtml(file) {
     var result = md.render(file.contents.toString());
@@ -137,7 +128,10 @@ function storeInDB(file) {
     //
     //     gutil.log(result);
     // }));
-    gutil.log(Post.count({'title' : new_post.title}));
+    
+    Post.count({'title': new_post.title}, function(err, count) {
+        gutil.log(count);
+    })
 
     Post.findOne({ 'title' : new_post.title }, function(err, result) {
         if (err) {
@@ -178,7 +172,6 @@ function storeInDB(file) {
 }
 
 gulp.task('handle_mds', function() {
-    // Post.collection.remove();
     return gulp.src('./src/md/**/*.md')
         .pipe(frontMatter())
         .pipe(tap(markdownToHtml))
@@ -232,7 +225,13 @@ gulp.task('watch', function() {
     gulp.watch('./styles/*.scss', ['sass']);
 })
 
-gulp.task('default', ['handle_mds', 'static', 'copy', 'sass', 'scripts'], function() {
+// gulp.task('default', ['dbconnect', 'handle_mds', 'static', 'copy', 'sass', 'scripts'], function() {
+//     mongoose.connection.close();
+//     process.exit(0);
+// })
+
+gulp.task('default', function() {
+    runseq('dbconnect', ['handle_mds', 'static', 'copy', 'sass', 'scripts']);
     mongoose.connection.close();
     process.exit(0);
-})
+});

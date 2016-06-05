@@ -2,3 +2,6 @@
 - delete functionality in mongo
     - semi-fixed...added a hidden tag. do not render if hidden === true. 
 - handle tags
+
+- MOVE TO GULP4??
+    - much easier to handle series/parallel tasks

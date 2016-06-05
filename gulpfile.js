@@ -31,7 +31,7 @@ gulp.task('dbconnect', function() {
     mongoose.connect(process.env.DB_URI);
 
     var db = mongoose.connection;
-    
+
     db.on('error', console.error.bind(console, 'connection error: '));
     db.once('open', function() {
         gutil.log('MongoDB connection successful');
@@ -128,7 +128,7 @@ function storeInDB(file) {
     //
     //     gutil.log(result);
     // }));
-    
+
     Post.count({'title': new_post.title}, function(err, count) {
         gutil.log(count);
     })

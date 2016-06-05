@@ -16,9 +16,7 @@ var sass = require('gulp-sass');
 var nunjucksRender = require('gulp-nunjucks-render');
 var mongoose = require('mongoose');
 var hash = require('string-hash');
-var runseq = require('run-sequence');
 var model = require('./models/mongoose_schema')(mongoose);
-
 
 var md = new MarkdownIt();
 
@@ -27,7 +25,7 @@ var md = new MarkdownIt();
 md.use(alerts);
 
 
-gulp.task('dbconnect', function() {
+function dbconnect(cb) {
     mongoose.connect(process.env.DB_URI);
 
     var db = mongoose.connection;
@@ -35,13 +33,10 @@ gulp.task('dbconnect', function() {
     db.on('error', console.error.bind(console, 'connection error: '));
     db.once('open', function() {
         gutil.log('MongoDB connection successful');
-        return;
+        return cb();
     });
-});
-
-
-
-// ---
+    return cb();
+};
 
 function markdownToHtml(file) {
     var result = md.render(file.contents.toString());
@@ -78,7 +73,7 @@ function handleDestForPost(file) {
 function handleDestForStatic(file) {
     var pathName = path.join(__dirname, 'dist');
     if(!fs.existsSync(pathName)) {
-        mkdirp(pathName);
+        mkdirp.sync(pathName);
     }
     fs.writeFile(path.join(pathName, file.name), file.contents, function(err, data) {
         if (err) throw err;
@@ -119,26 +114,10 @@ function storeInDB(file) {
         )
     }
 
-    // var query = Post.where({'title' : new_post.title});
-    //
-    // // gutil.log(query);
-    //
-    // gutil.log(query.findOne(function(err, result) {
-    //     if (err) throw err;
-    //
-    //     gutil.log(result);
-    // }));
-
-    Post.count({'title': new_post.title}, function(err, count) {
-        gutil.log(count);
-    })
-
     Post.findOne({ 'title' : new_post.title }, function(err, result) {
         if (err) {
             throw err;
         }
-
-        gutil.log(result);
 
         if(result === null) {
             new_post.save(function(err) {
@@ -169,10 +148,10 @@ function storeInDB(file) {
     })
 
     return;
-}
+};
 
-gulp.task('handle_mds', function() {
-    return gulp.src('./src/md/**/*.md')
+function handle_mds(cb) {
+    gulp.src('./src/md/**/*.md')
         .pipe(frontMatter())
         .pipe(tap(markdownToHtml))
         .pipe(tap(storeInDB))
@@ -180,17 +159,18 @@ gulp.task('handle_mds', function() {
             return fs.readFileSync('./layouts/' + data.file.frontMatter.layout).toString()
         }, null, {engine: 'nunjucks'}))
         .pipe(tap(handleDestForPost));
-});
+    return cb();
+};
 
-gulp.task('static', function() {
-    return gulp.src('./src/static/*.html')
+function copy_static() {
+    return gulp.src(['./src/static/*.nunjucks', './src/static/*.html'])
         .pipe(nunjucksRender({
             path: './layouts'
         }))
         .pipe(gulp.dest('./dist'));
-})
+};
 
-gulp.task('copy', function() {
+function copy(cb) {
     gulp.src('./node_modules/bootstrap/dist/js/bootstrap.min.js')
         .pipe(gulp.dest('./dist/js'));
     gulp.src('./node_modules/tether/dist/js/tether.min.js')
@@ -203,35 +183,29 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('./dist/css'));
     gulp.src('./img/*')
         .pipe(gulp.dest('./dist/img'));
-});
+    return cb();
+};
 
-gulp.task('sass', function() {
-    gulp.src('./styles/main.scss')
+function compile_sass() {
+    return gulp.src('./styles/main.scss')
         .pipe(sass().on('error', sass.logError))
         .pipe(gulp.dest('./dist/css'));
-});
+};
 
-gulp.task('scripts', function() {
-    gulp.src('./scripts/*.js')
+function scripts() {
+    return gulp.src('./scripts/*.js')
         .pipe(gulp.dest('./dist/js'));
-});
+};
 
+exports.dbconnect = dbconnect;
+exports.handle_mds = handle_mds;
+exports.copy_static = copy_static;
+exports.copy = copy;
+exports.compile_sass = compile_sass;
+exports.scripts = scripts;
 
-gulp.task('watch', function() {
-    gulp.watch('./layouts/*', ['default', 'static']);
-    gulp.watch('./scripts/*', ['scripts']);
-    gulp.watch('./src/md/*', ['default']);
-    gulp.watch('./src/static/*', ['static']);
-    gulp.watch('./styles/*.scss', ['sass']);
-})
+var build = gulp.parallel(gulp.series(dbconnect, handle_mds), copy_static, copy, compile_sass, scripts)
 
-// gulp.task('default', ['dbconnect', 'handle_mds', 'static', 'copy', 'sass', 'scripts'], function() {
-//     mongoose.connection.close();
-//     process.exit(0);
-// })
+gulp.task('build', build);
 
-gulp.task('default', function() {
-    runseq('dbconnect', ['handle_mds', 'static', 'copy', 'sass', 'scripts']);
-    mongoose.connection.close();
-    process.exit(0);
-});
+gulp.task('default', build);

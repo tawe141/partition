@@ -204,7 +204,7 @@ exports.copy = copy;
 exports.compile_sass = compile_sass;
 exports.scripts = scripts;
 
-var build = gulp.parallel(gulp.series(dbconnect, handle_mds), copy_static, copy, compile_sass, scripts);
+var build = gulp.parallel(gulp.series(dbconnect, handle_mds), copy_static, copy, compile_sass, scripts)
 
 gulp.task('build', build);
 
